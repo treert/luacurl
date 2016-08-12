@@ -20,7 +20,13 @@
   #include <curl/curlver.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
 #include <lauxlib.h>
+}
+#else
+#include <lauxlib.h>
+#endif
 
 #if !defined(LUA_VERSION_NUM) || (LUA_VERSION_NUM <= 500)
 #define luaL_checkstring luaL_check_string 
