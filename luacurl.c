@@ -295,7 +295,7 @@ static size_t writerCallback(void *ptr, size_t size, size_t nmemb, void *stream)
 	curlT* c=(curlT*)stream;
 	lua_rawgeti(c->L, LUA_REGISTRYINDEX, c->fwriterRef);
 	pushLuaValueT(c->L, c->wudtype, c->wud);
-	lua_pushlstring(c->L, ptr, size * nmemb);
+	lua_pushlstring(c->L, (const char*)ptr, size * nmemb);
 	lua_call(c->L, 2, 1);
 	return (size_t)lua_tonumber(c->L, -1);
 }
@@ -318,7 +318,7 @@ static size_t headerCallback(void *ptr, size_t size, size_t nmemb, void *stream)
 	curlT* c=(curlT*)stream;
 	lua_rawgeti(c->L, LUA_REGISTRYINDEX, c->fheaderRef);
 	pushLuaValueT(c->L, c->hudtype, c->hud);
-	lua_pushlstring(c->L, ptr, size * nmemb);
+    lua_pushlstring(c->L, (const char*)ptr, size * nmemb);
 	lua_call(c->L, 2, 1);
 	return (size_t)lua_tonumber(c->L, -1);
 }
@@ -331,7 +331,7 @@ curlioerr ioctlCallback(CURL *handle, int cmd, void *clientp)
 	pushLuaValueT(c->L, c->iudtype, c->iud);
 	lua_pushnumber(c->L, cmd);
 	lua_call(c->L, 2, 1);
-	return (curlioerr)lua_tonumber(c->L, -1);
+	return (curlioerr)(int)lua_tonumber(c->L, -1);
 }
 #endif
 
@@ -395,9 +395,9 @@ static int lcurl_easy_getinfo(lua_State* L)
 {
 	curlT* c=tocurl(L, 1);
 	CURLINFO nInfo;
-	CURLcode code=-1;
+	CURLcode code=(CURLcode)-1;
 	luaL_checktype(L, 2, LUA_TNUMBER);   /* accept info code number only */
-	nInfo=lua_tonumber(L, 2);
+    nInfo = (CURLINFO)(int)lua_tonumber(L, 2);
 	if (nInfo>CURLINFO_SLIST)
 	{
 		/* string list */
@@ -728,7 +728,7 @@ ALL_CURL_OPT
 	}
 
 	/* set easy the curl option with the processed value */
-	if (CURLE_OK == (code=curl_easy_setopt(c->curl, (int)lua_tonumber(L, 2), v.nval)))
+	if (CURLE_OK == (code=curl_easy_setopt(c->curl, (CURLoption)(int)lua_tonumber(L, 2), v.nval)))
 	{
 		/* on success return true */
 		lua_pushboolean(L, 1);
